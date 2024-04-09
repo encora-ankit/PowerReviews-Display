@@ -1,0 +1,156 @@
+<?php
+/**
+ * @author Michal Walkowiak
+ * @copyright Copyright (c) 2019 PowerReviews (http://www.powerreviews.com)
+ * @package PowerReviews_ReviewDisplay
+ */
+?>
+<?php
+  $viewModel = $block->getData('view_model');
+  $defaultReview = $viewModel->getMagentoDefaultReview();
+?>
+<?php
+  $productName = $block->getCurrentProduct()->getName();
+if ($productName) {
+    $productName  = strip_tags($productName);
+}
+  $productDescription = $block->getCurrentProduct()->getDescription();
+if ($productDescription) {
+    $productDescription  = strip_tags($productDescription);
+}
+?>
+<div id="pwr-snippets">
+  <!-- start_product_section_review_snippet_section -->
+    <div id="pr-reviewsnippet" style="<?= $viewModel->getProductPageReviewSnippet() ? '' : 'display: none;' ?>"></div>
+  <!-- end_product_section_review_snippet_section -->
+
+  <!-- start_product_question_snippet_section -->
+    <div id="pr-questionsnippet" style="<?= $viewModel->getProductPageQuestionSnippet() ? '' : 'display: none;' ?>"></div>
+  <!-- end_product_question_snippet_section -->
+</div>
+<?php
+  $product = $block->getCurrentProduct();
+
+  $productType = $product->getTypeId();
+
+  $variants = [];
+
+
+  // If we are having more than 1 variant
+if ($productType == 'configurable') {
+    foreach ($product->getTypeInstance()->getUsedProducts($product) as $productVariant) {
+        $item = [
+        'name' => $productVariant->getName(),
+        'description' => $productVariant->getName(),
+        'page_id_variant' => preg_replace("/[^a-zA-Z0-9-]/", "", trim($productVariant->getSku())),
+        'upc' => $productVariant->getUpcCode() ? $productVariant->getUpcCode() : '',
+        'price' => $productVariant->getPrice()
+        ];
+
+        array_push($variants, $item);
+    }
+
+    $variants = array_values($variants);
+}
+?>
+
+<?php
+    $productImageUrl = $this->helper(Magento\Catalog\Helper\Image::class)->init($product, 'product_page_image_large')
+                                                                       ->setImageFile($product->getFile())->getUrl();
+  
+  $manufacturer = $product->getResource()->getAttribute('manufacturer') ?
+  trim(urlencode($product->getResource()->getAttribute('manufacturer')
+  ->getFrontend()->getValue($product))) : '';
+    ?>
+
+<?php
+  $objectManager =  \Magento\Framework\App\ObjectManager::getInstance();
+
+  $categoryCollection = $objectManager->get(\Magento\Catalog\Model\ResourceModel\Category\CollectionFactory::class);
+
+  $categoryIds = $product->getCategoryIds();
+
+  $categories = $categoryCollection->create()
+                                 ->addAttributeToSelect('*')
+                                 ->addAttributeToFilter('entity_id', $categoryIds);
+
+  $firstCategory = '';
+
+  # Per requirement we only take the first available category
+foreach ($categories as $category) {
+    $firstCategory = $category->getName();
+
+    if ($firstCategory != '') {
+        break;
+    }
+}
+?>
+ 
+<?php if ($defaultReview != '1') {?>
+<!-- start_review_render_code_js_section -->
+  <script>
+    window.pwr = window.pwr || function() {
+      (pwr.q = pwr.q || []).push(arguments);
+    }
+  </script>
+  <script>
+    require(['jquery', 'jquery/ui'], function($){
+      var components = {
+          ReviewSnippet: 'pr-reviewsnippet',
+          QuestionSnippet: 'pr-questionsnippet',
+          QuestionDisplay: 'pr-questiondisplay'
+        }
+
+      if ($('#pr-reviewdisplay').length > 0) {
+        components.ReviewDisplay = 'pr-reviewdisplay';
+      }
+
+
+      pwr("render", {
+        api_key: "<?= /* @noEscape */ trim($viewModel->getApiKey()); ?>",
+        locale: "<?= /* @noEscape */ trim($viewModel->getLocale()); ?>",
+        merchant_group_id: "<?= /* @noEscape */ trim($viewModel->getMerchantGroupId()); ?>",
+        merchant_id: "<?= /* @noEscape */ trim($viewModel->getMerchantId()); ?>",
+        page_id: "<?= /* @noEscape */ preg_replace("/[^a-zA-Z0-9-]/", "", trim($block->getCurrentProduct()
+          ->getSku())); ?>",
+        review_wrapper_url: "<?= /* @noEscape */ $block->getBaseUrl(); ?>write-a-review/?pr_page_id=<?=
+        /* @noEscape */ preg_replace("/[^a-zA-Z0-9-]/", "", trim($block->getCurrentProduct()->getSku())); ?>",
+        on_read_reviews_click: function() {
+          var reviewdisplay = $("#reviewdisplay\\.tab");
+          $('#tab-label-reviewdisplay\\.tab-title').click();
+          reviewdisplay.show();
+            setTimeout(function() {
+              reviewdisplay[0].scrollIntoView(true);
+              document.body.scrollTop -= 100;
+            }, 0);
+        },
+        on_view_answers_click: function() {
+          var questiondisplay = $("#questiondisplay\\.tab");
+          $('#tab-label-questiondisplay\\.tab-title').click();
+          questiondisplay.show();
+            setTimeout(function() {
+              questiondisplay[0].scrollIntoView(true);
+              document.body.scrollTop -= 100;
+            }, 0);
+        },
+        product: {
+          name: "<?= /* @noEscape */ addslashes(str_replace(["\n", "\r"], ' ', $productName)); ?>",
+          url: "<?= /* @noEscape */ $block->getCurrentProduct()->getProductUrl(); ?>",
+          image_url: "<?= /* @noEscape */ $productImageUrl ?>",
+          description: "<?= /* @noEscape */ ($productDescription) ?
+            addslashes(str_replace(["\n", "\r"], ' ', $productDescription)) : ''; ?>",
+          category_name: "<?= /* @noEscape */ $firstCategory != '' ? $firstCategory : 'default'; ?>",
+          upc: "<?= /* @noEscape */ $block->getCurrentProduct()->getUpcCode(); ?>",
+          brand_name: "<?= /* @noEscape */ $manufacturer == 'No' ? '' : $manufacturer ?>",
+          price: "<?= /* @noEscape */ $block->getCurrentProduct()->getPrice(); ?>",
+        <?php if (!empty(/* @noEscape */ $variants)): ?>
+          variants: <?= /* @noEscape */ json_encode($variants); ?>,
+        <?php endif; ?>
+          in_stock: "<?= /* @noEscape */ $block->getCurrentProduct()->isAvailable(); ?>",
+        },
+        components: components
+      });
+    });
+  </script>
+<?php } ?>
+<!-- end_review_render_code_js_section -->
