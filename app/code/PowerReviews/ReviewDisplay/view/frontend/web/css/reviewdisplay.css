@@ -1,0 +1,7 @@
+.powerreviews-reviewdisplay-block{
+    clear: both;
+    float: none;
+}
+.catalog-category-view  .product-item-info .product-item-details .pwr-category-snippets .pr-snippet.pr-category-snippet {
+	margin: inherit;
+}
