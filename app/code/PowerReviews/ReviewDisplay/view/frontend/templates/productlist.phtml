@@ -1,8 +1,0 @@
-<?php
-  $style = $block->getSearchResultsCategoryPageSnippet() ? '' : 'display: none;';
-?>
-
-<div class="pwr-category-snippets" style="<?= /* @noEscape */ $style ?>">
-  <div id="snippet-<?= /* @noEscape */preg_replace("/[^a-zA-Z0-9-]/", "", $block->getProduct()->getData()['sku']); ?>">
-  </div>
-</div>

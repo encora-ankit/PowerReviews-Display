@@ -1,2 +1,0 @@
-# ReviewDisplay - PowerReviews Magento extension
-
