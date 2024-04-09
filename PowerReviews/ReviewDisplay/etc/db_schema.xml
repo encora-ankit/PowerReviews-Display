@@ -1,0 +1,11 @@
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="powerreviews_reviewdisplay">
+        <column xsi:type="int" name="id" unsigned="true" nullable="false" comment="Id"/>
+        <column xsi:type="varchar" name="label" default="null" length="255" nullable="false" comment="Name"/>
+        <column xsi:type="mediumtext" name="value" nullable="false" comment="Stores"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="id"/>
+        </constraint>
+   </table>
+</schema>

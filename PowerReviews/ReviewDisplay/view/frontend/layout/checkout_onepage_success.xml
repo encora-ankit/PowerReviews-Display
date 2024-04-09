@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<body>
+    <referenceContainer name="content">
+        <block class="PowerReviews\ReviewDisplay\Block\Beacon" name="order.details.success" template="PowerReviews_ReviewDisplay::order/success.phtml" after="-">
+            <arguments>
+               <argument translate="true" name="title" xsi:type="string">Reviews</argument>
+               <argument name="view_model" xsi:type="object">PowerReviews\ReviewDisplay\ViewModel\Product</argument>
+           </arguments>
+        </block>
+    </referenceContainer>
+</body>

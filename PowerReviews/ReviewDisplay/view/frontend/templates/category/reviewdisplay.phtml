@@ -1,0 +1,45 @@
+<?php
+  $viewModel = $block->getData('view_model');
+  $products = $block->getCurrentCategory()->getProductCollection();
+?>
+
+<script>
+  window.pwr = window.pwr || function() {
+    (pwr.q = pwr.q || []).push(arguments);
+  }
+</script>
+<script>
+  require(['jquery', 'jquery/ui'], function($){
+      $(function(){
+          var snippetNames = [];
+          var snippetCollection = [];
+
+          <?php foreach ($products as $product): ?>
+                <?php if ($product->isVisibleInCatalog() && $product->isAvailable()): ?>
+                  snippetNames.push({'page_id': '<?= preg_replace("/[^a-zA-Z0-9-]/", "", /* @noEscape */ $product->
+                    getData()['sku']); ?>', 'snippet_name': 'snippet-<?= preg_replace("/[^a-zA-Z0-9-]
+                    /", "", /* @noEscape */ $product->getData()['sku']); ?>'});
+                <?php endif; ?>
+          <?php endforeach; ?>
+
+          for (i = 0; i < snippetNames.length; i++) {
+            if (this.getElementById(snippetNames[i].snippet_name)) {
+              snippetCollection.push(
+                {
+                  api_key: '<?= /* @noEscape */ $viewModel->getApiKey(); ?>',
+                  locale: '<?= /* @noEscape */ $viewModel->getLocale(); ?>',
+                  merchant_group_id: '<?= /* @noEscape */ $viewModel->getMerchantGroupId(); ?>',
+                  merchant_id: '<?= /* @noEscape */ $viewModel->getMerchantId(); ?>',
+                  page_id: snippetNames[i].page_id.toString(),
+                  components: {
+                      CategorySnippet: snippetNames[i].snippet_name.toString()
+                  }
+                }
+              )
+            }
+          }
+
+          pwr("render", snippetCollection);
+      });
+  });
+</script>
